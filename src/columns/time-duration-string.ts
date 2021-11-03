@@ -1,0 +1,234 @@
+import * as glide from "../glide";
+//import padEnd from "./pad-end";
+
+/* 
+Returns a string representing the time difference between two dates rounded to the unit precision. 
+Test here: onecompiler.com/javascript or jsfiddle.net/
+- Parameters:
+  - **start**, **end** - end is optional and defaults to now(). Allow java date objects or properly formated, as dates, strings (i.e. "2021-10-20T14:35:46.217Z").
+  - **pUnits** (optional) - an array of stings that represent the plural unit words. 
+      This also controls the precision desired. 
+      The order needs to be: ['years','months','days','hours','minutes','seconds','milliseconds'].
+      Omitting units from the end of the array will omit from the duration
+      and round up to that last unit.
+  - **sUnits** (optional) - as above but singular of units. Note array length and
+      order should be the same as pUnits.
+  - **separator** (optional) - separator string of units in the returned string. Default is ', '
+  - **otherFills** (optional) - array that holds the final suffix. 
+      Default is ['ago','until','less than']
+*/
+function durationTest(start: number, end: number) {
+    return "1 yr, 1 day ago";
+}
+
+function duration(
+    start: number,
+    end: number,
+    pUnits = ["years", "months", "days", "hours", "minutes", "seconds", "milliseconds"],
+    sUnits = ["year", "month", "day", "hour", "minute", "second", "millisecond"],
+    separator = ", ",
+    otherFills = ["ago", "until", "less than"]
+) {
+    //return "1 yr, 1 day ago";
+    // if start or end are strings convert to dates
+    //start = typeof start === "string" ? new Date(start) : start;
+    //end = typeof end === "string" ? new Date(end) : end;
+
+    // return if pUnits length does not match sUnits length
+    //console.log("starting function");
+    if (pUnits.length !== sUnits.length) {
+        return "Unit description lengths do not match!";
+    }
+    let diff = Math.abs(Number(start) - Number(end));
+    console.log(diff);
+    let diffR;
+    let suffix = start > end ? otherFills[0] : otherFills[1];
+    let milliseconds, seconds, minutes, hours, days, months, years;
+
+    years = Math.floor(diff / 1000 / 60 / 60 / 24 / 365);
+    diffR = diff - years * 365 * 24 * 60 * 60 * 1000;
+    months = Math.floor(diffR / 1000 / 60 / 60 / 24 / 30);
+
+    diffR = diff - years * 365 * 24 * 60 * 60 * 1000 - months * 30 * 24 * 60 * 60 * 1000;
+    days = Math.floor(diffR / 1000 / 60 / 60 / 24);
+
+    diffR = diff - years * 365 * 24 * 60 * 60 * 1000 - months * 30 * 24 * 60 * 60 * 1000 - days * 24 * 60 * 60 * 1000;
+    hours = Math.floor(diffR / 1000 / 60 / 60);
+
+    diffR =
+        diff -
+        years * 365 * 24 * 60 * 60 * 1000 -
+        months * 30 * 24 * 60 * 60 * 1000 -
+        days * 24 * 60 * 60 * 1000 -
+        hours * 60 * 60 * 1000;
+    minutes = Math.floor(diffR / 1000 / 60);
+
+    diffR =
+        diff -
+        years * 365 * 24 * 60 * 60 * 1000 -
+        months * 30 * 24 * 60 * 60 * 1000 -
+        days * 24 * 60 * 60 * 1000 -
+        hours * 60 * 60 * 1000 -
+        minutes * 60 * 1000;
+    seconds = Math.floor(diffR / 1000);
+
+    milliseconds =
+        diff -
+        years * 365 * 24 * 60 * 60 * 1000 -
+        months * 30 * 24 * 60 * 60 * 1000 -
+        days * 24 * 60 * 60 * 1000 -
+        hours * 60 * 60 * 1000 -
+        minutes * 60 * 1000 -
+        seconds * 1000;
+
+    // rounded up array
+    let roundUp = [years, months, days, hours, minutes, seconds, milliseconds];
+
+    if (roundUp[6] > 499) {
+        // milliseconds
+        roundUp[5] += 1;
+        if (roundUp[5] > 59) {
+            roundUp[4] += 1;
+            roundUp[5] -= 60;
+        }
+    }
+    if (roundUp[5] > 29) {
+        // seconds
+        roundUp[4] += 1;
+        if (roundUp[4] > 59) {
+            roundUp[3] += 1;
+            roundUp[4] -= 60;
+        }
+    }
+    if (roundUp[4] > 29) {
+        // minutes
+        roundUp[3] += 1;
+        if (roundUp[3] > 23) {
+            roundUp[2] += 1;
+            roundUp[3] -= 24;
+        }
+    }
+    if (roundUp[3] > 11) {
+        // hours
+        roundUp[2] += 1;
+        if (roundUp[2] > 29) {
+            roundUp[1] += 1;
+            roundUp[2] -= 30;
+        }
+    }
+    if (roundUp[2] > 14) {
+        // days
+        roundUp[1] += 1;
+        if (roundUp[1] > 11) {
+            roundUp[0] += 1;
+            roundUp[1] -= 12;
+        }
+    }
+    if (roundUp[1] > 5) {
+        // months
+        roundUp[0] += 1;
+    }
+    //console.log(roundUp);
+
+    // round up until the last unit
+    for (var i = 0; i < pUnits.length; i++) {
+        i === 0 ? (years = roundUp[i]) : "";
+        i === 1 ? (months = roundUp[i]) : "";
+        i === 2 ? (days = roundUp[i]) : "";
+        i === 3 ? (hours = roundUp[i]) : "";
+        i === 4 ? (minutes = roundUp[i]) : "";
+        i === 5 ? (seconds = roundUp[i]) : "";
+    }
+
+    let output = "";
+    for (var i = 0; i < pUnits.length; i++) {
+        if (i === 0 && years > 0) {
+            output += years + " " + (years > 1 ? pUnits[i] : sUnits[i]) + separator;
+        }
+        if (i === 1 && months > 0) {
+            output += months + " " + (months > 1 ? pUnits[i] : sUnits[i]) + separator;
+        }
+        if (i === 2 && days > 0) {
+            output += days + " " + (days > 1 ? pUnits[i] : sUnits[i]) + separator;
+        }
+        if (i === 3 && hours > 0) {
+            output += hours + " " + (hours > 1 ? pUnits[i] : sUnits[i]) + separator;
+        }
+        if (i === 4 && minutes > 0) {
+            output += minutes + " " + (minutes > 1 ? pUnits[i] : sUnits[i]) + separator;
+        }
+        if (i === 5 && seconds > 0) {
+            output += seconds + " " + (seconds > 1 ? pUnits[i] : sUnits[i]) + separator;
+        }
+        if (i === 6 && milliseconds > 0) {
+            output += milliseconds + " " + (milliseconds > 1 ? pUnits[i] : sUnits[i]) + separator;
+        }
+    }
+
+    // remove the last separator
+    output = output.substring(0, output.length - separator.length);
+
+    // if empty it must be less than last rounded unit
+    if (output === "") {
+        output = otherFills[2] + " 1 " + sUnits[sUnits.length - 1];
+    }
+    return (output += " " + suffix);
+    //return "1 yr, 1 day ago";
+}
+
+export default glide
+    .columnNamed("Relative Time")
+    .withReleased("direct")
+    .withDescription(`Given a date, returns a string with the relative time (e.g. '1 day ago').`)
+    .withCategory("Date & Time")
+    .withAuthor("George Barnabic", "george@glideapps.com")
+    .withAbout(
+        `
+    Learn more at [glideapps.com](https://glideapps.com).
+  `
+    )
+    .withStringResult()
+    .withRequiredDateParam("start")
+    .withDateParam("end")
+    .withTest(
+        {
+            start: "2021-10-22T14:35:46.216Z",
+            end: "2020-10-21T14:35:46.216Z",
+            style: "round",
+        },
+        "1 year, 1 day ago"
+    )
+    .withTest(
+        {
+            start: "2020-10-21T14:35:46.216Z",
+            end: "2021-10-22T14:35:46.216Z",
+            style: "round",
+        },
+        "1 year, 1 day until"
+    )
+    .withTest(
+        {
+            start: "2020-10-20T10:30:40.210Z",
+            end: "2021-12-22T11:35:46.217Z",
+            style: "round",
+        },
+        "1 year, 2 months, 3 days, 1 hour, 5 minutes, 6 seconds, 7 milliseconds until"
+    )
+    .withTest(
+        {
+            start: "2021-10-21T14:35:46.216Z",
+            end: "2021-10-21T14:40:46.216Z",
+            style: "round",
+        },
+        "5 minutes until"
+    )
+
+    .run(({ start, end, style }) => {
+        const dateMillis = Date.parse(start);
+        if (isNaN(dateMillis)) return "test 1";
+
+        const nowMillis = end === undefined ? Date.now() : Date.parse(end);
+        if (isNaN(nowMillis)) return "test 2";
+
+        return duration(dateMillis, nowMillis);
+    });
